@@ -7,6 +7,7 @@ import { CreateEmployeeV2Component } from './employee/create-employee-v2.compone
 const appRoutes:Routes=[
   {path:'list' , component:ListEmployeesComponent},
   {path:'create', component:CreateEmployeeComponent},
+  { path: 'edit/:id', component: CreateEmployeeV2Component },
   {path:'createV2', component:CreateEmployeeV2Component},
   {path:'' ,redirectTo:'/list',pathMatch:'full'}
 ]

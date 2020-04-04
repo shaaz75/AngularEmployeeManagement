@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+ import { Component, OnInit } from '@angular/core';
 // Import FormGroup and FormControl classes
 import { FormGroup,FormBuilder, Validators, AbstractControl, FormArray } from '@angular/forms';
 import {CustomValidators} from '../shared/custom.validators'
 import { Key } from 'protractor';
+import { ActivatedRoute, Router } from '@angular/router';
+import { EmployeeService } from './employee.service';
+import { IEmployee } from './IEmployee';
+import { ISkill } from './ISkill';
 
 @Component({
   selector: 'app-create-employee-v2',
@@ -12,9 +16,14 @@ import { Key } from 'protractor';
 export class CreateEmployeeV2Component implements OnInit {
   // This FormGroup contains fullName and Email form controls
   employeeForm: FormGroup;
+  employee:IEmployee;
+  pageTitle: string;
   fullNameLength=0;
 
-  constructor(private fb:FormBuilder) { }
+  constructor(private fb:FormBuilder,
+              private route:ActivatedRoute,
+              private employeeService:EmployeeService,
+              private router: Router) { }
 
   // This object will hold the messages to be displayed to the user
 // Notice, each key in this object has the same name as the
@@ -49,6 +58,25 @@ validationMessages = {
   // ngOnInit ensures the FormGroup and it's form controls are
   // created when the component is initialised
   ngOnInit() {
+
+    this.route.paramMap.subscribe(params => {
+      const empId = +params.get('id');
+      if (empId) {
+        this.pageTitle = 'Edit Employee';
+        this.getEmployee(empId);
+      } else {
+        this.pageTitle = 'Create Employee';
+        this.employee = {
+          id: null,
+          fullName: '',
+          contactPreference: '',
+          email: '',
+          phone: null,
+          skills: []
+        };
+      }
+    });
+
     // Modify the code to include required validators on
     // all form controls
     this.employeeForm = this.fb.group({
@@ -58,7 +86,7 @@ validationMessages = {
       emailGroup: this.fb.group({
         email: ['', [Validators.required,CustomValidators.emailDomain('niksaj.com')]],
         confirmEmail: ['', [Validators.required]],
-      }, { validator: matchEmails }),
+      }, { validator: matchEmail }),
       phone: [''],
       skills: this.fb.array([
         this.addSkillFormGroup()
@@ -67,21 +95,62 @@ validationMessages = {
 
     this.employeeForm.valueChanges.subscribe((data)=>{
       this.logValidationErrors(this.employeeForm);
-    })
+    });
 
-    this.employeeForm.get('contactPreference')
-                 .valueChanges.subscribe((data: string) => {
-  this.onContactPrefernceChange(data);
+    this.employeeForm.get('contactPreference').valueChanges.subscribe((data: string) => {
+     this.onContactPrefernceChange(data);
+
 });
-    // this.employeeForm.get('fullName').valueChanges.subscribe((value:string)=> { this.fullNameLength=value.length});
-  }
 
+
+    // this.employeeForm.get('fullName').valueChanges.subscribe((value:string)=> { this.fullNameLength=value.length});
+}
+
+getEmployee(id: number) {
+  this.employeeService.getEmployee(id)
+    .subscribe(
+      (employee: IEmployee) => {
+        // Store the employee object returned by the
+        // REST API in the employee property
+        this.employee = employee;
+        this.editEmployee(employee);
+      },
+      (err: any) => console.log(err)
+    );
+}
+
+editEmployee(employee: IEmployee) {
+  this.employeeForm.patchValue({
+    fullName: employee.fullName,
+    contactPreference: employee.contactPreference,
+    emailGroup: {
+      email: employee.email,
+      confirmEmail: employee.email
+    },
+    phone: employee.phone
+  });
+
+  this.employeeForm.setControl('skills', this.setExistingSkills(employee.skills));
+}
+
+setExistingSkills(skillSets: ISkill[]): FormArray {
+  const formArray = new FormArray([]);
+  skillSets.forEach(s => {
+    formArray.push(this.fb.group({
+      skillName: s.skillName,
+      experienceInYears: s.experienceInYears,
+      proficiency: s.proficiency
+    }));
+  });
+
+  return formArray;
+}
   // If the Selected Radio Button value is "phone", then add the
 // required validator function otherwise remove it
 onContactPrefernceChange(selectedValue: string) {
 
   const phoneFormControl = this.employeeForm.get('phone');
-  const emailFormControl = this.employeeForm.get('email');
+  const emailFormControl = this.employeeForm.get('emailGroup').get('email');
   
   if (selectedValue === 'phone') {
     phoneFormControl.setValidators(Validators.required);
@@ -121,16 +190,14 @@ onContactPrefernceChange(selectedValue: string) {
   logValidationErrors(group: FormGroup = this.employeeForm): void {
     Object.keys(group.controls).forEach((key: string) => {
       const abstractControl = group.get(key);
+  
       this.formErrors[key] = '';
-      // Loop through nested form groups and form controls to check
-      // for validation errors. For the form groups and form controls
-      // that have failed validation, retrieve the corresponding
-      // validation message from validationMessages object and store
-      // it in the formErrors object. The UI binds to the formErrors
-      // object properties to display the validation errors.
-      if (abstractControl && !abstractControl.valid
-        && (abstractControl.touched || abstractControl.dirty)) {
+      // abstractControl.value !== '' (This condition ensures if there is a value in the
+      // form control and it is not valid, then display the validation error)
+      if (abstractControl && !abstractControl.valid &&
+          (abstractControl.touched || abstractControl.dirty || abstractControl.value !== '')) {
         const messages = this.validationMessages[key];
+  
         for (const errorKey in abstractControl.errors) {
           if (errorKey) {
             this.formErrors[key] += messages[errorKey] + ' ';
@@ -144,10 +211,30 @@ onContactPrefernceChange(selectedValue: string) {
     });
   }
 
-  onSubmit():void{
-    this.logValidationErrors(this.employeeForm);
-    console.log(this.formErrors);
+  onSubmit(): void {
+    this.mapFormValuesToEmployeeModel();
+  
+    if (this.employee.id) {
+      this.employeeService.updateEmployee(this.employee).subscribe(
+        () => this.router.navigate(['list']),
+        (err: any) => console.log(err)
+      );
+    } else {
+      this.employeeService.addEmployee(this.employee).subscribe(
+        () => this.router.navigate(['list']),
+        (err: any) => console.log(err)
+      );
+    }
   }
+
+  mapFormValuesToEmployeeModel() {
+    this.employee.fullName = this.employeeForm.value.fullName;
+    this.employee.contactPreference = this.employeeForm.value.contactPreference;
+    this.employee.email = this.employeeForm.value.emailGroup.email;
+    this.employee.phone = this.employeeForm.value.phone;
+    this.employee.skills = this.employeeForm.value.skills;
+  }
+
   onLoadDataClick(): void {
     this.employeeForm.setValue({
       fullName: 'Niksaj Technologies',
@@ -166,9 +253,12 @@ onContactPrefernceChange(selectedValue: string) {
   }
 
   removeSkillButtonClick(skillGroupIndex: number): void {
-    (<FormArray>this.employeeForm.get('skills')).removeAt(skillGroupIndex);
+    const skillsFormArray = <FormArray>this.employeeForm.get('skills');
+    skillsFormArray.removeAt(skillGroupIndex);
+    skillsFormArray.markAsDirty();
+    skillsFormArray.markAsTouched();
   }
-  
+
   addSkillFormGroup():FormGroup{
     return this.fb.group({
       skillName: ['', Validators.required],
@@ -192,11 +282,13 @@ onContactPrefernceChange(selectedValue: string) {
 // validation passed otherwise an object with emailMismatch key. Please note we
 // used this same key in the validationMessages object against emailGroup
 // property to store the corresponding validation error message
-function matchEmails(group: AbstractControl): { [key: string]: any } | null {
+function matchEmail(group: AbstractControl): { [key: string]: any } | null {
   const emailControl = group.get('email');
   const confirmEmailControl = group.get('confirmEmail');
-
-  if (emailControl.value === confirmEmailControl.value || confirmEmailControl.pristine) {
+  // If confirm email control value is not an empty string, and if the value
+  // does not match with email control value, then the validation fails
+  if (emailControl.value === confirmEmailControl.value
+    || (confirmEmailControl.pristine && confirmEmailControl.value === '')) {
     return null;
   } else {
     return { 'emailMismatch': true };

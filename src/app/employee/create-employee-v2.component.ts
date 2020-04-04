@@ -21,14 +21,6 @@ export class CreateEmployeeV2Component implements OnInit {
 // corresponding form control
 // Include phone property
 formErrors = {
-  'fullName': '',
-  'email': '',
-  'confirmEmail':'',
-  'emailGroup':'',
-  'phone': '',
-  'skillName': '',
-  'experienceInYears': '',
-  'proficiency': ''
 };
 
 // Include required error message for phone form control
@@ -50,16 +42,7 @@ validationMessages = {
   },
   'phone': {
     'required': 'Phone is required.'
-  },
-  'skillName': {
-    'required': 'Skill Name is required.',
-  },
-  'experienceInYears': {
-    'required': 'Experience is required.',
-  },
-  'proficiency': {
-    'required': 'Proficiency is required.',
-  },
+  }
 };
 
   // Initialise the FormGroup with the 2 FormControls we need.
@@ -158,13 +141,6 @@ onContactPrefernceChange(selectedValue: string) {
       if (abstractControl instanceof FormGroup) {
         this.logValidationErrors(abstractControl);
       }
-      if (abstractControl instanceof FormArray) {
-        for (const control of abstractControl.controls) {
-          if (control instanceof FormGroup) {
-            this.logValidationErrors(control);
-          }
-        }
-      }
     });
   }
 
@@ -184,6 +160,10 @@ onContactPrefernceChange(selectedValue: string) {
     });
   }
 
+  addSkillButtonClick():void{
+   (<FormArray> this.employeeForm.get('skills')).push(this.addSkillFormGroup())
+   console.log(this.employeeForm.controls);
+  }
   addSkillFormGroup():FormGroup{
     return this.fb.group({
       skillName: ['', Validators.required],

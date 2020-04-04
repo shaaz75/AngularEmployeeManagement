@@ -164,6 +164,11 @@ onContactPrefernceChange(selectedValue: string) {
    (<FormArray> this.employeeForm.get('skills')).push(this.addSkillFormGroup())
    console.log(this.employeeForm.controls);
   }
+
+  removeSkillButtonClick(skillGroupIndex: number): void {
+    (<FormArray>this.employeeForm.get('skills')).removeAt(skillGroupIndex);
+  }
+  
   addSkillFormGroup():FormGroup{
     return this.fb.group({
       skillName: ['', Validators.required],

@@ -78,12 +78,15 @@ string is passed to the event handler function -->
   <div class="well">
     <div class="form-group">
       <div class="col-md-offset-2 col-md-4">
-        <button type="button" class="btn btn-primary" (click)="addSkillButtonClick()">
-          Add Skill
-        </button>
+        <button type="button" class="btn btn-primary"
+        (click)="addSkillButtonClick()"
+        [disabled]="employeeForm.get('skills').invalid">
+  Add Skill
+</button>
       </div>
     </div>
       <div formArrayName="skills" *ngFor="let skill of employeeForm.get('skills').controls;let i=index">
+        <hr *ngIf="i>0">
     <div [formGroupName]="i"> 
       <div class="form-group" [ngClass]="{'has-error': skill.get('skillName').invalid && skill.get('skillName').touched}">
         <label class="col-sm-2 control-label" [attr.for]="'skillName'+i">
@@ -94,6 +97,12 @@ string is passed to the event handler function -->
           <span class="help-block" *ngIf="skill.get('skillName').errors?.required && skill.get('skillName').touched">
             Skill Name is required
           </span>
+        </div>
+        <div class="col-sm-6" *ngIf="employeeForm.get('skills').length>1">
+          <button type="button" class="btn btn-danger btn-sm pull-right"
+                  title="Delete Skill" (click)="removeSkillButtonClick(i)">
+            <span class="glyphicon glyphicon-remove"></span>
+          </button>
         </div>
       </div>
   

@@ -9,6 +9,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule} from '@angular/forms';
 import { CreateEmployeeV2Component } from './employee/create-employee-v2.component'
 
+import { EmployeeService } from './employee/employee.service';
+import { HttpClientModule } from '@angular/common/http';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -20,9 +23,10 @@ import { CreateEmployeeV2Component } from './employee/create-employee-v2.compone
   imports: [
     BrowserModule,
     AppRoutingModule,
+    HttpClientModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [EmployeeService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

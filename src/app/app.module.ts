@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 //For lazy loading
-import { EmployeeModule } from './employee/employee.module';
+// import { EmployeeModule } from './employee/employee.module';
 
 import { EmployeeService } from './employee/employee.service';
 
@@ -23,7 +23,7 @@ import { PageNotFoundComponent } from './page-not-found.component';
     BrowserModule,
     HttpClientModule,
     //For lazy loading
-    EmployeeModule,
+    // EmployeeModule,
     AppRoutingModule,
   ],
   providers: [EmployeeService],

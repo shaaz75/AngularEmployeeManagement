@@ -1,30 +1,30 @@
+// app.module.ts
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
-import { AppComponent } from './app.component';
-import { CreateEmployeeComponent } from './employee/create-employee.component';
-import { ListEmployeesComponent } from './employee/list-employees.component';
 import { AppRoutingModule } from './app-routing.module';
-import { ReactiveFormsModule} from '@angular/forms';
-import { CreateEmployeeV2Component } from './employee/create-employee-v2.component'
+//For lazy loading
+import { EmployeeModule } from './employee/employee.module';
 
 import { EmployeeService } from './employee/employee.service';
-import { HttpClientModule } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { HomeComponent } from './home.component';
+import { PageNotFoundComponent } from './page-not-found.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    CreateEmployeeComponent,
-    ListEmployeesComponent,
-    CreateEmployeeV2Component,
-    CreateEmployeeV2Component
+    HomeComponent,
+    PageNotFoundComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     HttpClientModule,
-    ReactiveFormsModule
+    //For lazy loading
+    EmployeeModule,
+    AppRoutingModule,
   ],
   providers: [EmployeeService],
   bootstrap: [AppComponent]

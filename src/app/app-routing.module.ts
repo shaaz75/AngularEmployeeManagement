@@ -1,21 +1,18 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes} from '@angular/router';
-import { ListEmployeesComponent } from './employee/list-employees.component';
-import { CreateEmployeeComponent } from './employee/create-employee.component';
-import { CreateEmployeeV2Component } from './employee/create-employee-v2.component';
+import { RouterModule, Routes } from '@angular/router';
 
-const appRoutes:Routes=[
-  {path:'list' , component:ListEmployeesComponent},
-  {path:'create', component:CreateEmployeeComponent},
-  { path: 'edit/:id', component: CreateEmployeeV2Component },
-  {path:'createV2', component:CreateEmployeeV2Component},
-  {path:'' ,redirectTo:'/list',pathMatch:'full'}
-]
+import { HomeComponent } from './home.component';
+import { PageNotFoundComponent } from './page-not-found.component';
+
+const appRoutes: Routes = [
+  { path: 'home', component: HomeComponent },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'employees', loadChildren: './employee/employee.module#EmployeeModule'},
+  { path: '**', component: PageNotFoundComponent }
+];
 
 @NgModule({
-  imports: [
-    RouterModule.forRoot(appRoutes)
-  ],
-  exports:[RouterModule]
+  imports: [ RouterModule.forRoot(appRoutes) ],
+  exports: [ RouterModule ]
 })
 export class AppRoutingModule { }

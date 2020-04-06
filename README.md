@@ -15,4 +15,3 @@ Execute the following command to start JSON SERVER
 If port is not available,please use following command
 
 `json-server --port 3001 --watch db.json`
-
